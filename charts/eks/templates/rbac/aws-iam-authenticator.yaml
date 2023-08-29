@@ -1,0 +1,81 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: aws-iam-authenticator
+  labels:
+    app: vcluster
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+rules:
+- apiGroups:
+  - iamauthenticator.k8s.aws
+  resources:
+  - iamidentitymappings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - iamauthenticator.k8s.aws
+  resources:
+  - iamidentitymappings/status
+  verbs:
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  resourceNames:
+  - aws-auth
+  verbs:
+  - get
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aws-iam-authenticator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: vcluster
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: aws-iam-authenticator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: vcluster
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: aws-iam-authenticator
+subjects:
+- kind: ServiceAccount
+  name: aws-iam-authenticator
+  namespace: {{ .Release.Namespace }}
